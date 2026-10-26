@@ -1,7 +1,5 @@
-import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
-const require = createRequire(import.meta.url);
-const { Genesis, pull } = require('../../lib/genesis.js');
+import { Genesis, pull } from '../../lib/genesis.js';
 
 export async function onRequestPost({ request }) {
   try {
