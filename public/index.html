@@ -238,7 +238,7 @@ function heroHtml(){const t=nowS(),L=dayList(S.day),st=k=>periodMinutes(periodTi
  else {const date=new Date(),weekday=date.getDay()>=1&&date.getDay()<=5,schoolHours=t>=7.5*3600&&t<14.5*3600;
  if(!S.clock&&weekday&&schoolHours){a='School day in progress';b='No class time matches the current time in your imported schedule (this may be lunch, a passing period, or a missing class time).'}
  else {const o=S.day==='A'?'B':'A',f=dayList(o)[0];a='School’s out';b=`Tomorrow is ${o} day`+(f?`, first up ${esc(f.n)} in room ${esc(f.r)}`:'')}}
- return`<div class="lbl">${S.clock?'Demo clock':'Right now'} · ${S.day} day</div><div class="clk">${fmt(t)}</div><div class="big" style="font-size:26px">${a}</div><div class="mu">${b}</div>${bar}}
+ return`<div class="lbl">${S.clock?'Demo clock':'Right now'} · ${S.day} day</div><div class="clk">${fmt(t)}</div><div class="big" style="font-size:26px">${a}</div><div class="mu">${b}</div>${bar}`}
 const V={};
 V.sched=()=>{const hasLive=Array.isArray(S.schedule)&&S.schedule.length;/* Prefer Genesis's real schedule rows. If that endpoint failed, show imported course names as an explicit fallback instead of hiding every course whose A/B day is unknown. Never invent a period/time for fallback rows. */const fallbackRows=dayList(S.day).length?dayList(S.day):S.courses.filter(k=>k.d==='Unknown').slice().sort((a,b)=>String(a.n).localeCompare(String(b.n))).map(k=>({...k, fallbackOnly:true}));const rows=hasLive?S.schedule.filter(k=>k.d==='AB'||k.d===S.day):fallbackRows;return `<h2>Schedule</h2><div class="hero" id="hero">${heroHtml()}</div>
 <div class="row sp"><button class="btn ${S.day==='A'?'on':''}" data-act="day" data-v="A">A day</button><button class="btn ${S.day==='B'?'on':''}" data-act="day" data-v="B">B day</button>
