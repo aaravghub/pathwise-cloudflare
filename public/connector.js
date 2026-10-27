@@ -51,7 +51,8 @@
       return k;
     });
     const previouslySelectedMp = !identityChanged ? S.markingPeriod : '';
-    S.markingPeriods = {};
+    const savedPeriods = !identityChanged ? (S.markingPeriods || {}) : {};
+    S.markingPeriods = { ...savedPeriods };
     Object.entries(d.markingPeriods || {}).forEach(([mp,courses]) => { S.markingPeriods[mp]=hydrate(courses); });
     S.markingPeriod = previouslySelectedMp && S.markingPeriods[previouslySelectedMp] ? previouslySelectedMp : (d.markingPeriod || previouslySelectedMp || 'MP1');
     S.courses = S.markingPeriods[S.markingPeriod] || hydrate(d.courses || []);
