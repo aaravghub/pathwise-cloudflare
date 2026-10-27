@@ -50,10 +50,11 @@
       if (o) (k.cats || []).forEach(c => { const oc=(o.cats||[]).find(x=>x.n===c.n); if(oc) c.items.push(...oc.items.filter(i=>i.h)); });
       return k;
     });
+    const previouslySelectedMp = !identityChanged ? S.markingPeriod : '';
     S.markingPeriods = {};
     Object.entries(d.markingPeriods || {}).forEach(([mp,courses]) => { S.markingPeriods[mp]=hydrate(courses); });
-    S.markingPeriod = d.markingPeriod || S.markingPeriod || 'MP1';
-    S.courses = hydrate(d.courses || []);
+    S.markingPeriod = previouslySelectedMp && S.markingPeriods[previouslySelectedMp] ? previouslySelectedMp : (d.markingPeriod || previouslySelectedMp || 'MP1');
+    S.courses = hydrate(S.markingPeriods[S.markingPeriod] || d.courses || []);
     if (S.markingPeriods[S.markingPeriod]) S.markingPeriods[S.markingPeriod] = S.courses;
     S.schedule = Array.isArray(d.schedule) ? d.schedule : []; S.school='sb'; S.demo=0; S.auth=1; S.open=null;
     if (d.accountKey) S.accountKey=d.accountKey;
@@ -68,7 +69,7 @@
     const changed = !!lastFingerprint && nextFingerprint !== lastFingerprint;
     adopt(d); lastFingerprint = nextFingerprint;
     if (changed) notifyChanged();
-    if (manual) toast(d.scheduleWarning ? 'Sync finished. Schedule warning: ' + d.scheduleWarning : changed ? 'Sync finished. Grade changes were detected.' : 'Grades and schedule synced with Genesis.');
+    if (manual) toast(d.scheduleWarning ? 'Sync finished. Schedule warning: ' + d.scheduleWarning : 'Grades and schedule synced with Genesis.');
     return d;
   }  function addSyncBtn() {
     if (document.getElementById('pw-sync') || !S.auth) return;
