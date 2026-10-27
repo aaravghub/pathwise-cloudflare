@@ -57,8 +57,9 @@ const norm=s=>String(s??'').toLowerCase().replace(/[^a-z0-9]/g,'');
 const GOALS={eng:'Engineering',cs:'Computer Science',sci:'Science & Research',med:'Medicine & Health',psych:'Psychology',bus:'Business',law:'Law & Policy',edu:'Education',arts:'Arts & Design'};
 const TABS=[['sched','Schedule'],['grades','Grades'],['notes','Notes'],['plan','Course planner'],['col','Colleges'],['clubs','Clubs'],['myplan','My plans'],['opps','Opportunities']];
 const PER=[['7:40','8:25'],['8:30','9:15'],['9:20','10:05'],['10:10','10:55'],['11:00','11:45'],['11:50','12:35']];
-const SCALE=[[93,4,'A'],[90,3.7,'A-'],[87,3.3,'B+'],[83,3,'B'],[80,2.7,'B-'],[77,2.3,'C+'],[73,2,'C'],[70,1.7,'C-'],[67,1.3,'D+'],[65,1,'D'],[-1e9,0,'F']];
-const pts=g=>{const r=SCALE.find(x=>g>=x[0])||SCALE[10];return[r[1],r[2]]};
+const SCALE=[[93,4.00,'A'],[90,3.67,'A-'],[87,3.33,'B+'],[83,3.00,'B'],[80,2.67,'B-'],[77,2.33,'C+'],[73,2.00,'C'],[70,1.67,'C-'],[65,1.00,'D'],[-1e9,0.00,'F']];
+const roundedGrade=g=>Math.round(Number(g)||0);
+const pts=g=>{const n=roundedGrade(g),r=SCALE.find(x=>n>=x[0])||SCALE[SCALE.length-1];return[r[1],r[2]]};
 const CAT=[
 {n:'Honors Precalculus',l:'Honors',g:11,pre:['Algebra II'],t:['eng','cs','med','bus']},
 {n:'AP Calculus AB',l:'AP',g:12,pre:['Precalculus'],t:['eng','cs','med','bus']},
@@ -252,8 +253,8 @@ const dayList=d=>(Array.isArray(S.schedule)&&S.schedule.length?S.schedule:S.cour
 const periodTimes=k=>(k.start&&k.end)?[k.start,k.end]:(PER[(Math.max(1,Math.min(PER.length,+k.p||1)))-1]||PER[0]);
 const periodMinutes=v=>{let m=String(v||'').match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?/i);if(!m)return 0;let h=+m[1],mi=+(m[2]||0);if(m[3]){if(h===12)h=0;if(m[3].toUpperCase()==='PM')h+=12;}return h*60+mi};
 function gradeOf(k,wi){if(!k.cats||!k.cats.some(c=>c.items.length))return +k.g;let t=0,sw=0;k.cats.forEach(c=>{const it=c.items.filter(i=>wi||!i.h),m=it.reduce((a,i)=>a+ +i.m,0);if(m>0){t+=c.w*it.reduce((a,i)=>a+ +i.s,0)/m;sw+=+c.w}});return sw?100*t/sw:+k.g}
-function gpa(wi){let u=0,w=0,c=0;S.courses.forEach(k=>{const g=gradeOf(k,wi),p=pts(g)[0],cr=+k.c||1;u+=p*cr;w+=(p+(g>=65?(S.w[k.l]||0):0))*cr;c+=cr});return c?{u:u/c,w:w/c}:{u:0,w:0}}
-const gtxt=g=>g.toFixed(1)+'% · '+pts(g)[1];
+function gpa(wi){let u=0,w=0,c=0;S.courses.forEach(k=>{const g=roundedGrade(gradeOf(k,wi)),p=pts(g)[0],cr=+k.c||1,bonus=g>=70?(S.w[k.l]||0):0;u+=p*cr;w+=(p+bonus)*cr;c+=cr});return c?{u:u/c,w:w/c}:{u:0,w:0}}
+const gtxt=g=>roundedGrade(g)+'% · '+pts(g)[1];
 const hasWi=()=>S.courses.some(k=>k.cats.some(c=>c.items.some(i=>i.h)));
 const stat=(l,v,d)=>`<div class="card"><div class="lbl">${l}</div><div class="big">${v==null?'—':v.toFixed(2)}</div>${d!=null?`<div class="${d>=0?'up':'dn'}">${d>=0?'+':''}${d.toFixed(2)} vs now</div>`:'<div class="mu">&nbsp;</div>'}</div>`;
 const chips=a=>a.map(x=>`<span class="chip">${GOALS[x]||'All students'}</span>`).join('');
