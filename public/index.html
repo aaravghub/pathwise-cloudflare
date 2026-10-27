@@ -15,11 +15,11 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:'Plus Jakarta Sa
 .w{max-width:1100px;margin:0 auto;padding:0 20px}
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-top:20px;padding-bottom:10px}
 .logo{display:flex;gap:10px;align-items:center;font-weight:800;font-size:24px;letter-spacing:-.4px}
-nav{display:flex;gap:6px;overflow-x:auto;padding:6px 20px 14px;max-width:1100px;margin:0 auto}
+nav{display:flex;gap:5px;overflow-x:auto;padding:4px 20px 10px;max-width:1100px;margin:0 auto;scrollbar-width:thin}
 nav button,.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 15px;border-radius:999px;font-weight:600;font-size:14px;font-family:inherit;white-space:nowrap;cursor:pointer;min-height:44px}
 .btn{border-radius:12px}
 nav button.on,.btn.on,.btn.p{background:var(--acc);color:var(--accink);border-color:var(--acc)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
 .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(270px,1fr))}
 .g4{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));margin:16px 0 22px}
 .lbl{font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute)}
@@ -32,7 +32,7 @@ input,select,textarea{font-family:inherit;font-size:15px;color:var(--ink);backgr
 input[type=number]{width:92px}textarea{width:100%;min-height:150px;font-family:ui-monospace,Menlo,monospace;font-size:13px}
 table{width:100%;border-collapse:collapse}th{text-align:left;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);padding:8px}td{padding:10px 8px;border-top:1px solid var(--line)}
 .sc{overflow-x:auto}tr.hi td{background:var(--soft)}
-h2{font-size:30px;letter-spacing:-.6px;margin:22px 0 4px}h3{margin:26px 0 10px;font-size:19px}
+h2{font-size:26px;letter-spacing:-.5px;margin:18px 0 4px}h3{margin:20px 0 8px;font-size:17px}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .sp{margin-top:14px}.hero{background:var(--acc);color:var(--accink);border-radius:22px;padding:26px}.hero .lbl,.hero .mu{color:inherit;opacity:.85}
 footer{padding:36px 20px 48px;text-align:center;color:var(--mute);font-size:14px;max-width:700px;margin:0 auto}
@@ -40,13 +40,13 @@ label.t{display:flex;gap:10px;align-items:center;min-height:44px}
 .clk{font-size:56px;font-weight:800;letter-spacing:-1px;font-variant-numeric:tabular-nums;line-height:1.1;margin:6px 0}
 .bar{height:10px;border-radius:6px;background:rgba(255,255,255,.28);margin-top:14px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accink)}
 .lk{background:none;border:0;color:var(--ink);font-family:inherit;font-size:16px;font-weight:700;text-align:left;cursor:pointer;padding:8px 0;min-height:44px;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:4px}
-.dn2{text-decoration:line-through;opacity:.6}td input[type=number]{width:80px}
+.dn2{text-decoration:line-through;opacity:.6}td input[type=number]{width:80px}.toptools{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.toptools .btn{padding:7px 10px;min-height:38px;font-size:12px}.tour-shade{position:fixed;inset:0;background:rgba(4,12,8,.72);z-index:100;display:flex;align-items:center;justify-content:center;padding:18px}.tour-box{width:min(520px,100%);background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 18px 60px rgba(0,0,0,.3)}.tour-box h2{margin-top:8px}.tour-progress{height:5px;background:var(--line);border-radius:8px;overflow:hidden;margin:14px 0}.tour-progress i{display:block;height:100%;background:var(--acc);transition:width .2s}.tour-box .mu{margin:10px 0 18px}.toptools button[aria-pressed=true]{background:var(--acc);color:var(--accink)}
 </style>
 </head>
 <body>
 <div class="w top">
 <div class="logo"><svg aria-hidden="true" width="34" height="34" viewBox="0 0 34 34" fill="none"><rect width="34" height="34" rx="10" fill="var(--acc)"/><path d="M8 24c5 0 4-9 9-9s3 6 9 6" stroke="var(--accink)" stroke-width="3" stroke-linecap="round"/><circle cx="26" cy="11" r="3" fill="var(--accink)"/></svg>Pathwise</div>
-<div class="mu"><span id="demo" class="chip w">Demo data</span><b id="who"></b> <button class="btn" id="so" data-act="logout" hidden>Sign out</button></div>
+<div class="toptools"><button class="btn" id="theme-toggle" type="button" aria-label="Switch color theme">Dark mode</button><button class="btn" id="tour-toggle" type="button">Take a tour</button><button class="btn" id="alerts-toggle" type="button">Enable grade alerts</button><span class="mu"><span id="demo" class="chip w">Demo data</span><b id="who"></b></span><button class="btn" id="so" data-act="logout" hidden>Sign out</button></div>
 </div>
 <nav id="nav" aria-label="Sections"></nav>
 <main class="w" id="main"></main>
@@ -270,7 +270,7 @@ return`<button class="btn" data-act="back">← All classes</button><h2>${esc(k.n
 <h3>Assignments & tests</h3><p class="mu">Enter each score and the points possible. Upcoming tests can be added as what-if scores to see what you need.</p>${!k.cats.some(c=>c.items.length)?'<p class="mu">Genesis returned the class average but no individual assignment scores for this class. This usually means the assignment-detail link was not exposed in the gradebook response; you can add scores below.</p>':''}${k.cats.map((c,ci)=>`<div class="card sc sp"><div class="lbl">${esc(c.n)} · ${c.w}%</div><table>${c.items.map((it,j)=>`<tr><td>${esc(it.n)}${it.due?' <span class="mu">· '+esc(it.due)+'</span>':''}${it.h?' <span class="chip w">what-if</span>':''}</td><td><input type="number" value="${it.s}" data-f="is" data-i="${i}" data-c="${ci}" data-j="${j}" aria-label="Score"></td><td>/ <input type="number" value="${it.m}" data-f="im" data-i="${i}" data-c="${ci}" data-j="${j}" aria-label="Out of"></td><td><label class="t"><input type="checkbox" data-f="ih" data-i="${i}" data-c="${ci}" data-j="${j}" ${it.h?'checked':''}> what-if</label></td><td><button class="btn" data-act="deli" data-i="${i}" data-c="${ci}" data-j="${j}">Delete</button></td></tr>`).join('')||'<tr><td class="mu">No assignments yet.</td></tr>'}</table></div>`).join('')}
 <h3>Class target & progress</h3><div class="card"><div class="row">Target grade <input id="ktarget" type="number" min="0" max="100" value="${k.target??90}" aria-label="Target grade percent"> % <button class="btn p" data-act="settarget">Save target</button></div><p class="mu">Pathwise compares your current grade with this target. Course eligibility cutoffs vary by school, so use the percentage your counselor or course guide gives you.</p><div id="targetstatus" class="sp"></div></div><h3>Add an assignment or upcoming test</h3><div class="card"><div class="row"><select id="ac" aria-label="Category">${opts}</select><input id="an" placeholder="Test / assignment name" aria-label="Name"><input id="as" type="number" placeholder="Score / what-if" aria-label="Score"><span>/</span><input id="am" type="number" value="100" aria-label="Points possible"><input id="adue" type="date" aria-label="Test date"><label class="t"><input type="checkbox" id="ah" checked> what-if</label><button class="btn p" data-act="addi">Add</button></div></div>
 <h3>What do I need?</h3><div class="card"><div class="row">I want <input id="ct" type="number" value="90" aria-label="Target grade"> % with one more <select id="cc" aria-label="Category">${opts}</select> worth <input id="cm" type="number" value="100" aria-label="Points"> pts</div><p class="big" style="font-size:20px" id="cr"></p></div>`}
-V.grades=()=>S.open!=null?detail():`<h2>Grades</h2><p class="mu">Click a class to see its assignments and category weights, add grades, and test what-ifs.</p><div class="g4">${gbox()}</div>
+V.grades=()=>S.open!=null?detail():`<h2>Grades</h2><div class="row sp"><label>Marking period <select data-act="mp" aria-label="Marking period">${["MP1","MP2","MP3","MP4"].map(mp=>`<option value="${mp}" ${S.markingPeriod===mp?"selected":""} ${S.markingPeriods&&S.markingPeriods[mp]?"":"disabled"}>${mp}${S.markingPeriods&&S.markingPeriods[mp]?"":" (not returned by Genesis)"}</option>`).join("")}</select></label><span class="mu">${S.markingPeriods&&S.markingPeriods[S.markingPeriod]?"Showing saved grades for "+S.markingPeriod:"Genesis has not returned separate MP1–MP4 records yet; only the imported grade set is available."}</span></div><p class="mu">Click a class to see its assignments and category weights, add grades, and test what-ifs.</p><div class="g4">${gbox()}</div>
 <div class="card sc"><table><tr><th>Class</th><th>Level</th><th>Teacher</th><th>Grade / target</th><th>Status</th></tr>${S.courses.map((k,i)=>{const g=gradeOf(k,1),tg=+(k.target??90),behind=g<tg;return`<tr><td><button class="lk" data-act="open" data-v="${i}">${esc(k.n)}</button></td><td>${esc(k.l)}</td><td>${esc(k.t)}</td><td><b>${gtxt(g)}</b><div class="mu">Target: ${tg}%</div>${k.cats.some(c=>c.items.some(x=>x.h))?' <span class="chip w">what-if</span>':''}</td><td><span class="chip ${behind?'w':''}">${behind?'Below target':'On track'}</span></td></tr>`}).join('')}</table></div>
 <p class="mu">Weighting: AP +${S.w.AP}, Honors +${S.w.Honors}. Change it in Settings.</p>`;
 V.notes=()=>{const n=S.notes,hw=n.hw.map((h,i)=>({h,i})).sort((a,b)=>(a.h.d||'9').localeCompare(b.h.d||'9'));
