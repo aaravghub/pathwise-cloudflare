@@ -252,7 +252,7 @@ const fmt=s=>{s=Math.floor(s)%86400;const h=Math.floor(s/3600),m=Math.floor(s%36
 const dayList=d=>(Array.isArray(S.schedule)&&S.schedule.length?S.schedule:S.courses).filter(k=>k.d==='AB'||k.d===d).sort((a,b)=>(+a.p||99)-(+b.p||99)||String(a.n).localeCompare(String(b.n)));
 const periodTimes=k=>(k.start&&k.end)?[k.start,k.end]:(PER[(Math.max(1,Math.min(PER.length,+k.p||1)))-1]||PER[0]);
 const periodMinutes=v=>{let m=String(v||'').match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?/i);if(!m)return 0;let h=+m[1],mi=+(m[2]||0);if(m[3]){if(h===12)h=0;if(m[3].toUpperCase()==='PM')h+=12;}return h*60+mi};
-function gradeOf(k,wi){if(!k.cats||!k.cats.some(c=>c.items.length))return +k.g;let t=0,sw=0;k.cats.forEach(c=>{const it=c.items.filter(i=>wi||!i.h),m=it.reduce((a,i)=>a+ +i.m,0);if(m>0){t+=c.w*it.reduce((a,i)=>a+ +i.s,0)/m;sw+=+c.w}});return sw?100*t/sw:+k.g}
+function gradeOf(k,wi){const official=Number(k.g)||0;if(!k.cats||!k.cats.some(c=>c.items.length))return official;const calc=includeWhatIf=>{let t=0,sw=0;k.cats.forEach(c=>{const it=c.items.filter(i=>includeWhatIf||!i.h),m=it.reduce((a,i)=>a+ +i.m,0);if(m>0){t+=c.w*it.reduce((a,i)=>a+ +i.s,0)/m;sw+=+c.w}});return sw?100*t/sw:null};if(!wi||!k.cats.some(c=>c.items.some(i=>i.h)))return official;const baseline=calc(false),projected=calc(true);return baseline===null||projected===null?official:official+(projected-baseline)}
 function gpa(wi){let u=0,w=0,c=0;S.courses.forEach(k=>{const g=roundedGrade(gradeOf(k,wi)),p=pts(g)[0],cr=+k.c||1,bonus=g>=70?(S.w[k.l]||0):0;u+=p*cr;w+=(p+bonus)*cr;c+=cr});return c?{u:u/c,w:w/c}:{u:0,w:0}}
 const gtxt=g=>roundedGrade(g)+'% · '+pts(g)[1];
 const hasWi=()=>S.courses.some(k=>k.cats.some(c=>c.items.some(i=>i.h)));
