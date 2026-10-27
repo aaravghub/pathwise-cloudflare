@@ -54,7 +54,7 @@
     S.markingPeriods = {};
     Object.entries(d.markingPeriods || {}).forEach(([mp,courses]) => { S.markingPeriods[mp]=hydrate(courses); });
     S.markingPeriod = previouslySelectedMp && S.markingPeriods[previouslySelectedMp] ? previouslySelectedMp : (d.markingPeriod || previouslySelectedMp || 'MP1');
-    S.courses = hydrate(S.markingPeriods[S.markingPeriod] || d.courses || []);
+    S.courses = S.markingPeriods[S.markingPeriod] || hydrate(d.courses || []);
     if (S.markingPeriods[S.markingPeriod]) S.markingPeriods[S.markingPeriod] = S.courses;
     S.schedule = Array.isArray(d.schedule) ? d.schedule : []; S.school='sb'; S.demo=0; S.auth=1; S.open=null;
     if (d.accountKey) S.accountKey=d.accountKey;
