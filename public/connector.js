@@ -138,11 +138,18 @@
     if (b.disabled) return;
     attemptLogin();
   }, true);
+  document.addEventListener('submit', e => {
+    if (e.target?.id !== 'genesis-login-form') return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    if (!document.querySelector('button[data-act="login"]')?.disabled) attemptLogin();
+  }, true);
   document.addEventListener('keydown', e => {
     if (e.key !== 'Enter') return;
     const target = e.target;
     if (!target || !['gu','gp'].includes(target.id)) return;
     e.preventDefault();
+    e.stopPropagation();
     if (!document.querySelector('button[data-act="login"]')?.disabled) attemptLogin();
   }, true);
   setInterval(async () => {
