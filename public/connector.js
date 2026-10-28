@@ -170,14 +170,18 @@
       const d = await post('/api/login', { user, pass });
       if (status) status.textContent = 'Loading your saved Pathwise notes and homework…';
       credentials = { user, pass }; cloudReady = false; lastFingerprint = gradeFingerprint(d); p.value = '';
-      let savedPersonal = null;
-      try { savedPersonal = await loadPersonalData(); }
+      let savedPersonal = null, personalLoaded = false;
+      try { savedPersonal = await loadPersonalData(); personalLoaded = true; }
       catch (cloudError) { console.warn('[Pathwise] Personal-data load failed:', cloudError.message); }
       adopt(d);
       if (savedPersonal) applyPersonalData(savedPersonal);
-      cloudReady = true;
-      save();
-      if (!savedPersonal) schedulePersonalSave();
+      cloudReady = personalLoaded;
+      if (cloudReady) {
+        save();
+        if (!savedPersonal) schedulePersonalSave();
+      } else {
+        toast('Grades and schedule loaded, but saved notes/homework could not be loaded. Your cloud data was not overwritten. Reload and sign in again to retry.', 10000);
+      }
       hideLoginLoading();
       note('');
       toast(d.scheduleWarning ? 'Genesis connected, but schedule needs attention: ' + d.scheduleWarning : 'Connected. Grades will auto-sync every 10 minutes while this tab stays open.');
