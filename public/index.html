@@ -52,7 +52,7 @@ label.t{display:flex;gap:10px;align-items:center;min-height:44px}
 </div>
 <nav id="nav" aria-label="More sections"></nav>
 <div class="content-wrap"><div class="w"><div id="topnav" class="topnav" aria-label="Main sections"></div></div><main class="w" id="main"></main></div>
-<footer>Pathwise is a student project and isn’t affiliated with Genesis or any school. Your data stays in this browser. College ranges, clubs and opportunities are sample data to edit, so always verify with the source.</footer>
+<footer>Pathwise is a student project and isn’t affiliated with Genesis or any school. Your personal notes, homework, and plans sync to your account when signed in. College ranges, clubs and opportunities are sample data to edit, so always verify with the source.</footer>
 <script>
 const KEY='pathwise:v2',$=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const norm=s=>String(s??'').toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -245,7 +245,7 @@ try{S=Object.assign(DEMO(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e)
 if(S.demo&&S.name==='Alex Rivera'){S=DEMO();try{localStorage.removeItem(KEY)}catch(e){}}
 S.customColleges=S.customColleges||[];S.collegeStatus=S.collegeStatus||{};S.clubStatus=S.clubStatus||{};S.personalEvents=S.personalEvents||[];
 S.open=null;
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S));window.dispatchEvent(new CustomEvent('pathwise:state-saved'))}catch(e){}};
 const applyTheme=()=>{const theme=localStorage.getItem('pathwise:theme')||'light';document.documentElement.dataset.theme=theme;const b=document.getElementById('theme-toggle');if(b){b.textContent=theme==='dark'?'Light mode':'Dark mode';b.setAttribute('aria-pressed',String(theme==='dark'))}};
 const tourSteps=[['sched','Schedule','See A/B-day classes, times, rooms, and what is happening right now.'],['grades','Grades','Choose a marking period, open a class, review assignment scores, and test what-if grades.'],['notes','Notes','Keep goals, quick notes, homework, and clubs you want to join.'],['plan','Course planner','Explore courses that fit your interests and prerequisites.'],['col','Colleges','Save college targets and track application status.'],['clubs','Clubs','Browse clubs; those related to your career goal appear first.'],['myplan','My plans','Organize activities and personal next steps.'],['opps','Opportunities','Explore scholarships, research, internships, and competitions. Verify deadlines with official sources.'],['set','Settings','Update preferences, GPA weighting, visible sections, and data tools.']];
 let tourIndex=0;
