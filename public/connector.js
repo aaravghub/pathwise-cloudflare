@@ -1,7 +1,4 @@
-/** Pathwise Vercel connector.
- * Credentials are held in page memory only and sent over HTTPS for each sync.
- * Vercel functions do not keep a reliable process/session alive between requests.
- */
+/** Pathwise Cloudflare connector. Credentials remain in page memory only. */
 (() => {
   'use strict';
   let credentials = null;
@@ -64,6 +61,54 @@
     const n = new Notification('Pathwise: grades changed', { body:'Genesis has new or updated grade information. Open Pathwise to review it.' });
     n.onclick = () => { window.focus(); n.close(); };
   }
+  const PERSONAL_KEYS = ['notes','done','myClubs','schoolCourses','targets','goal','w','day','clock','tourDone','customColleges','collegeStatus','clubStatus','personalEvents','show','q','st','cw','wi','markingPeriod'];
+  let cloudReady = false, suppressCloudSave = false, cloudTimer = 0, cloudSaveBusy = false, cloudSaveAgain = false;
+  const personalSnapshot = () => {
+    const data = {};
+    for (const key of PERSONAL_KEYS) if (typeof S !== 'undefined' && Object.prototype.hasOwnProperty.call(S, key)) data[key] = S[key];
+    data.theme = localStorage.getItem('pathwise:theme') || 'light';
+    data.accent = localStorage.getItem('pathwise:accent') || '';
+    return data;
+  };
+  function applyPersonalData(data) {
+    if (!data || typeof data !== 'object') return;
+    suppressCloudSave = true;
+    for (const key of PERSONAL_KEYS) if (Object.prototype.hasOwnProperty.call(data, key)) S[key] = data[key];
+    if (typeof data.theme === 'string' && ['light','dark'].includes(data.theme)) {
+      localStorage.setItem('pathwise:theme', data.theme);
+      document.documentElement.dataset.theme = data.theme;
+    }
+    if (typeof data.accent === 'string' && /^#[0-9a-f]{6}$/i.test(data.accent)) {
+      localStorage.setItem('pathwise:accent', data.accent);
+      if (typeof applyAccent === 'function') applyAccent(data.accent, false);
+    }
+    suppressCloudSave = false;
+  }
+  async function savePersonalData() {
+    if (!credentials || !S.auth || !cloudReady || suppressCloudSave) return;
+    if (cloudSaveBusy) { cloudSaveAgain = true; return; }
+    cloudSaveBusy = true;
+    try {
+      await post('/api/student-data', { ...credentials, action: 'save', data: personalSnapshot() });
+    } catch (e) {
+      console.warn('[Pathwise] Could not sync personal data:', e.message);
+      toast('Your changes are saved on this device, but cloud sync failed. ' + e.message, 9000);
+    } finally {
+      cloudSaveBusy = false;
+      if (cloudSaveAgain) { cloudSaveAgain = false; savePersonalData(); }
+    }
+  }
+  function schedulePersonalSave() {
+    if (!cloudReady || suppressCloudSave || !credentials || !S.auth) return;
+    clearTimeout(cloudTimer);
+    cloudTimer = setTimeout(savePersonalData, 900);
+  }
+  window.addEventListener('pathwise:state-saved', schedulePersonalSave);
+  async function loadPersonalData() {
+    if (!credentials) return null;
+    const result = await post('/api/student-data', { ...credentials, action: 'load' });
+    return result.data || null;
+  }
   function adopt(d) {
     const identityChanged = !d.accountKey || !S.accountKey || S.accountKey !== d.accountKey;
     if (identityChanged) {
@@ -94,7 +139,10 @@
     if (!credentials) throw new Error('Sign in again to sync.');
     const d = await post('/api/sync', credentials), nextFingerprint = gradeFingerprint(d);
     const changed = !!lastFingerprint && nextFingerprint !== lastFingerprint;
-    adopt(d); lastFingerprint = nextFingerprint;
+    const personalBefore = cloudReady ? personalSnapshot() : null;
+    adopt(d);
+    if (personalBefore) applyPersonalData(personalBefore);
+    lastFingerprint = nextFingerprint;
     if (changed) notifyChanged();
     if (manual) toast(d.scheduleWarning ? 'Sync finished. Schedule warning: ' + d.scheduleWarning : 'Grades and schedule synced with Genesis.');
     return d;
@@ -120,8 +168,16 @@
     try {
       if (status) status.textContent = 'Connecting to Genesis…';
       const d = await post('/api/login', { user, pass });
-      if (status) status.textContent = 'Organizing your grades and schedule…';
-      credentials = { user, pass }; lastFingerprint = gradeFingerprint(d); p.value = ''; adopt(d);
+      if (status) status.textContent = 'Loading your saved Pathwise notes and homework…';
+      credentials = { user, pass }; cloudReady = false; lastFingerprint = gradeFingerprint(d); p.value = '';
+      let savedPersonal = null;
+      try { savedPersonal = await loadPersonalData(); }
+      catch (cloudError) { console.warn('[Pathwise] Personal-data load failed:', cloudError.message); }
+      adopt(d);
+      if (savedPersonal) applyPersonalData(savedPersonal);
+      cloudReady = true;
+      save();
+      if (!savedPersonal) schedulePersonalSave();
       hideLoginLoading();
       note('');
       toast(d.scheduleWarning ? 'Genesis connected, but schedule needs attention: ' + d.scheduleWarning : 'Connected. Grades will auto-sync every 10 minutes while this tab stays open.');
@@ -163,7 +219,7 @@
   }, 10 * 60 * 1000);
   document.addEventListener('click', e => {
     if (!e.target.closest('button[data-act="logout"]')) return;
-    credentials = null; lastFingerprint = '';
+    credentials = null; lastFingerprint = ''; cloudReady = false; clearTimeout(cloudTimer);
     const sync = document.getElementById('pw-sync'); if (sync) sync.remove();
   }, true);
 })();
