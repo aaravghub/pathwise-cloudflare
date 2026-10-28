@@ -2,3 +2,8 @@ name = "pathwise-cloudflare"
 pages_build_output_dir = "./public"
 compatibility_date = "2026-10-25"
 compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pathwise-data"
+database_id = "4f334684-0c32-4bbb-8b02-eab602c071c6"
