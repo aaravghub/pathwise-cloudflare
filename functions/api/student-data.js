@@ -17,7 +17,7 @@ async function identity(user, pass) {
 const allowed = new Set([
   'notes','done','myClubs','schoolCourses','targets','goal','w','day','clock','tourDone',
   'customColleges','collegeStatus','clubStatus','personalEvents','show','name','grade','school',
-  'q','st','cw','wi','markingPeriod'
+  'q','st','cw','wi','markingPeriod','theme','accent'
 ]);
 function pickState(state) {
   if (!state || typeof state !== 'object' || Array.isArray(state)) throw new Error('Invalid data.');
