@@ -7,7 +7,8 @@ This is a separate Cloudflare Pages version of Pathwise. The original Vercel rep
 1. In Cloudflare, create a Pages project connected to this repository (not a static-only upload).
 2. Framework preset: None. Build command: `npm install`. Build output directory: `public`.
 3. Ensure Node.js compatibility is enabled via the included `wrangler.toml`.
-4. Deploy, then test the homepage and `/api/login` using only an account you are authorized to use.
+4. Add a secret named `SESSION_SECRET` (Settings > Variables and Secrets, type Secret) with a long random value. Without it, sign-in works but a page reload needs a fresh sign-in to sync.
+5. Deploy, then test the homepage and `/api/login` using only an account you are authorized to use.
 
 ## Notes and limitations
 
