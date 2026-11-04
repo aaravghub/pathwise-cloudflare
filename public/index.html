@@ -221,12 +221,44 @@ body:has(.content-wrap.signed-out){padding-bottom:0}
 .row input,.row select{max-width:100%;min-width:0;flex:1 1 140px}
 table,.sc table{min-width:560px}
 input[type=number]{width:76px}
-.hero{padding:20px;border-radius:20px}
+.hero{padding:22px 20px;border-radius:22px}
 h2{font-size:24px}
 .pw-ladder{min-height:240px;border-radius:22px}
 .pw-ladder-copy{left:18px;bottom:16px}
 .pw-auth-card .card{padding:20px 18px}
 }
+
+/* Bolder pass: a pine field for "right now", the day as a ladder, bigger type, the logo path behind everything. */
+:root{--hero-bg:#145240;--hero-ink:#ECF8F2;--hero-mute:rgba(236,248,242,.66);--hero-line:rgba(236,248,242,.16)}
+:root[data-theme="dark"]{--hero-bg:#17503E;--hero-line:rgba(236,248,242,.14)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--hero-bg:#17503E}}
+.bg-path{position:fixed;z-index:-1;right:-8vmax;bottom:-12vmax;width:78vmax;height:78vmax;pointer-events:none;color:var(--acc);opacity:.22}
+.bg-path path{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.bg-path circle{fill:currentColor}
+h2{font-size:clamp(30px,3.6vw,44px);letter-spacing:-.035em;line-height:1.05;margin:24px 0 10px}
+.big{font-size:clamp(30px,3vw,40px);letter-spacing:-.035em}
+.g4 .card{padding:20px 22px}
+.hero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px 40px;align-items:center;background:var(--hero-bg);color:var(--hero-ink);border-radius:28px;padding:32px 36px}
+.hero .lbl,.hero .mu{color:var(--hero-mute);opacity:1}
+.hero .lbl{font-size:14px}
+.hero .clk{font-size:clamp(52px,7.4vw,92px);letter-spacing:-.045em;margin:4px 0 10px;color:var(--hero-ink)}
+.hero-a{font-size:clamp(22px,2.2vw,28px);font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-bottom:4px}
+.hero .bar{width:min(100%,280px);height:8px;background:var(--hero-line);margin-top:16px}
+.hero .bar i{background:var(--acc)}
+.daypath{list-style:none;margin:0;padding:0 0 0 26px;position:relative;display:flex;flex-direction:column-reverse;gap:2px}
+.daypath::before{content:"";position:absolute;left:8px;top:14px;bottom:14px;width:2px;border-radius:2px;background:var(--hero-line)}
+.daypath li{position:relative;display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:12px;align-items:baseline;padding:7px 12px;border-radius:12px;font-size:15px;color:var(--hero-mute)}
+.daypath li::before{content:"";position:absolute;left:-23px;top:calc(50% - 6px);width:12px;height:12px;border-radius:50%;background:var(--hero-bg);border:2px solid var(--hero-line)}
+.daypath .dp-t{font-variant-numeric:tabular-nums;font-size:14px}
+.daypath .dp-n{color:var(--hero-ink);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.daypath .dp-r{font-size:13px}
+.daypath li.done{opacity:.55}
+.daypath li.done::before{background:var(--acc);border-color:var(--acc)}
+.daypath li.now{background:color-mix(in srgb,var(--acc) 18%,transparent);color:var(--hero-ink)}
+.daypath li.now .dp-n{font-weight:700}
+.daypath li.now .dp-t{color:var(--acc)}
+.daypath li.now::before{width:16px;height:16px;left:-25px;top:calc(50% - 8px);background:var(--acc);border:3px solid var(--hero-bg);box-shadow:0 0 0 2px var(--acc)}
+@media (max-width:820px){.hero{grid-template-columns:1fr;padding:24px 22px}.daypath li{grid-template-columns:54px minmax(0,1fr) auto}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
@@ -236,6 +268,7 @@ h2{font-size:24px}
 <div class="toptools"><span id="demo" class="chip w">Demo data</span><b id="who"></b><button class="btn" id="theme-toggle" type="button" aria-label="Switch color theme">Dark mode</button><button class="btn" id="tour-toggle" type="button">Take a tour</button><button class="btn" id="alerts-toggle" type="button">Enable grade alerts</button><button class="btn" id="so" data-act="logout" hidden>Sign out</button></div>
 <div class="sync-wrap"><span class="sync-when" id="pw-sync-when"></span><button class="btn sync" id="pw-sync" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.4-4.6L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.4 4.6L20 16"/><path d="M20 20v-4h-4"/></svg><span class="sync-t">Sync now</span></button></div>
 </header>
+<svg class="bg-path" aria-hidden="true" viewBox="0 0 34 34" preserveAspectRatio="xMidYMid slice"><path d="M2 30c7 0 6-14 13-14s4 8 13 8"/><circle cx="28" cy="9" r="3.2"/></svg>
 <nav id="nav" aria-label="More sections"></nav>
 <div class="content-wrap"><div class="w"><div id="topnav" class="topnav" aria-label="Main sections"></div></div><main class="w" id="main"></main></div>
 <footer>Pathwise is a student project and isn’t affiliated with Genesis or any school. Your personal notes, homework, and plans sync to your account when signed in. College ranges, clubs and opportunities are sample data to edit, so always verify with the source.</footer>
@@ -473,12 +506,13 @@ const goalSel=()=>`<label>I want to go into <select data-act="goal" aria-label="
 const schoolEntries=()=>Object.entries(SCH).sort(([a],[b])=>a==='sb'?-1:b==='sb'?1:a==='demo'?-1:b==='demo'?1:0);
 const schoolSel=()=>`<label>School <select data-act="school" aria-label="School">${schoolEntries().map(([k,v])=>`<option value="${k}" ${S.school===k?'selected':''}>${v.n}</option>`).join('')}</select></label>`;
 function heroHtml(){const t=nowS(),L=dayList(S.day),st=k=>periodMinutes(periodTimes(k)[0])*60,en=k=>periodMinutes(periodTimes(k)[1])*60,cur=L.find(k=>t>=st(k)&&t<en(k)),nx=L.find(k=>st(k)>t);let a,b='',bar='';
- if(cur){a='In class: '+esc(cur.n);b=`${Math.max(1,Math.ceil((en(cur)-t)/60))} min left · Room ${esc(cur.r)} · ${esc(cur.t)}`+(nx?` · Next: ${esc(nx.n)} at ${periodTimes(nx)[0]}`:'');bar=`<div class="bar"><i style="width:${Math.max(0,Math.min(100,100*(t-st(cur))/(en(cur)-st(cur))))}%"></i></div>`}
+ if(cur){a='In class: '+esc(cur.n);b=`${Math.max(1,Math.ceil((en(cur)-t)/60))} min left · Room ${esc(cur.r)} · ${esc(cur.t)}`+(nx?` · Next: ${esc(nx.n)} at ${periodTimes(nx)[0]}`:'');bar=`<div class="bar" role="progressbar" aria-label="Class progress"><i style="width:${Math.max(0,Math.min(100,100*(t-st(cur))/(en(cur)-st(cur))))}%"></i></div>`}
  else if(nx){a='Next: '+esc(nx.n);b=`In ${Math.max(1,Math.ceil((st(nx)-t)/60))} min (${periodTimes(nx)[0]}) · Room ${esc(nx.r)} · ${esc(nx.t)}`}
  else {const date=new Date(),weekday=date.getDay()>=1&&date.getDay()<=5,schoolHours=t>=7.5*3600&&t<14.5*3600;
  if(!S.clock&&weekday&&schoolHours){a='School day in progress';b='No class time matches the current time in your imported schedule (this may be lunch, a passing period, or a missing class time).'}
  else {const o=S.day==='A'?'B':'A',f=dayList(o)[0];a='School’s out';b=`Tomorrow is ${o} day`+(f?`, first up ${esc(f.n)} in room ${esc(f.r)}`:'')}}
- return`<div class="lbl">${S.clock?'Demo clock':'Right now'} · ${S.day} day</div><div class="clk">${fmt(t).replace(/:/g,'<span class="cc">:</span>')}</div><div class="big" style="font-size:26px">${a}</div><div class="mu">${b}</div>${bar}`}
+ const rungs=L.slice(0,9).map(k=>{const s0=st(k),e0=en(k),state=k===cur?'now':e0&&e0<=t?'done':'next';return`<li class="${state}"${state==='now'?' aria-current="true"':''}><span class="dp-t">${esc(periodTimes(k)[0])}</span><span class="dp-n">${esc(k.n)}</span><span class="dp-r">${k.r?'Rm '+esc(k.r):''}</span></li>`}).join('');
+ return`<div class="hero-now"><div class="lbl">${S.clock?'Demo clock':'Right now'} · ${S.day} day</div><div class="clk">${fmt(t).replace(/:/g,'<span class="cc">:</span>')}</div><div class="hero-a">${a}</div><div class="mu">${b}</div>${bar}</div>${rungs?`<ol class="daypath" aria-label="${S.day} day classes, first period at the bottom">${rungs}</ol>`:''}`}
 const V={};
 V.sched=()=>{const hasLive=Array.isArray(S.schedule)&&S.schedule.length;/* Prefer Genesis's real schedule rows. If that endpoint failed, show imported course names as an explicit fallback instead of hiding every course whose A/B day is unknown. Never invent a period/time for fallback rows. */const fallbackRows=dayList(S.day).length?dayList(S.day):S.courses.filter(k=>k.d==='Unknown').slice().sort((a,b)=>String(a.n).localeCompare(String(b.n))).map(k=>({...k, fallbackOnly:true}));const rows=hasLive?dayList(S.day):fallbackRows;return `<h2>Schedule</h2><div class="hero" id="hero">${heroHtml()}</div>
 <div class="row sp"><button class="btn ${S.day==='A'?'on':''}" data-act="day" data-v="A">A day</button><button class="btn ${S.day==='B'?'on':''}" data-act="day" data-v="B">B day</button>
