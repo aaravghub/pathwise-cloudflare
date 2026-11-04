@@ -245,20 +245,14 @@ h2{font-size:clamp(30px,3.6vw,44px);letter-spacing:-.035em;line-height:1.05;marg
 .hero-a{font-size:clamp(22px,2.2vw,28px);font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-bottom:4px}
 .hero .bar{width:min(100%,280px);height:8px;background:var(--hero-line);margin-top:16px}
 .hero .bar i{background:var(--acc)}
-.daypath{list-style:none;margin:0;padding:0 0 0 26px;position:relative;display:flex;flex-direction:column-reverse;gap:2px}
-.daypath::before{content:"";position:absolute;left:8px;top:14px;bottom:14px;width:2px;border-radius:2px;background:var(--hero-line)}
-.daypath li{position:relative;display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:12px;align-items:baseline;padding:7px 12px;border-radius:12px;font-size:15px;color:var(--hero-mute)}
-.daypath li::before{content:"";position:absolute;left:-23px;top:calc(50% - 6px);width:12px;height:12px;border-radius:50%;background:var(--hero-bg);border:2px solid var(--hero-line)}
-.daypath .dp-t{font-variant-numeric:tabular-nums;font-size:14px}
-.daypath .dp-n{color:var(--hero-ink);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.daypath .dp-r{font-size:13px}
-.daypath li.done{opacity:.55}
-.daypath li.done::before{background:var(--acc);border-color:var(--acc)}
-.daypath li.now{background:color-mix(in srgb,var(--acc) 18%,transparent);color:var(--hero-ink)}
-.daypath li.now .dp-n{font-weight:700}
-.daypath li.now .dp-t{color:var(--acc)}
-.daypath li.now::before{width:16px;height:16px;left:-25px;top:calc(50% - 8px);background:var(--acc);border:3px solid var(--hero-bg);box-shadow:0 0 0 2px var(--acc)}
-@media (max-width:820px){.hero{grid-template-columns:1fr;padding:24px 22px}.daypath li{grid-template-columns:54px minmax(0,1fr) auto}}
+.hero-day{justify-self:end;display:grid;grid-template-columns:auto auto;align-items:end;column-gap:10px;text-align:left}
+.hd-w{grid-column:1/-1;font-size:15px;font-weight:600;color:var(--hero-mute)}
+.hd-l{font-size:clamp(110px,14vw,180px);font-weight:700;line-height:.82;letter-spacing:-.06em;color:var(--acc)}
+.hd-s{font-size:clamp(28px,3vw,40px);font-weight:700;letter-spacing:-.03em;padding-bottom:6px}
+.hero-day small{grid-column:1/-1;margin-top:14px;font-size:13.5px;color:var(--hero-mute);max-width:26ch}
+.hero .hd-back{color:var(--hero-ink);font-size:13.5px;min-height:0;padding:0}
+@media (max-width:820px){.hero{grid-template-columns:1fr auto;padding:24px 22px;gap:16px}.hd-l{font-size:96px}.hd-s{font-size:26px}.hero-day small{display:none}}
+@media (max-width:480px){.hero{grid-template-columns:1fr}.hero-day{grid-row:1;justify-self:start;grid-template-columns:auto auto auto;align-items:baseline}.hd-w{grid-column:auto;font-size:15px}.hd-l{font-size:44px;line-height:1;letter-spacing:-.04em}.hd-s{font-size:20px;padding:0}.hero-day small{display:block;grid-column:1/-1;margin-top:2px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
@@ -492,7 +486,20 @@ const fmt=s=>{s=Math.floor(s)%86400;const h=Math.floor(s/3600),m=Math.floor(s%36
 const dateKey=v=>{const s=String(v||'').trim();let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(m)return m[3]+'-'+String(m[1]).padStart(2,'0')+'-'+String(m[2]).padStart(2,'0');m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);if(m)return m[1]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[3]).padStart(2,'0');return ''};
 const localTodayKey=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const todayScheduleRows=()=>{const today=localTodayKey();return (Array.isArray(S.schedule)?S.schedule:[]).filter(k=>dateKey(k.date)===today)};
-const autoSelectTodayDay=()=>{const today=localTodayKey();if(S.dayAutoDate!==today){S.dayAutoDate=today;S.dayManual=0}const rows=todayScheduleRows();const found=rows.find(k=>k.d==='A'||k.d==='B');if(found){S.detectedDay=found.d;if(!S.dayManual)S.day=found.d}};
+const keyOf=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const schoolDaysBetween=(from,to)=>{let n=0;const d=new Date(from),step=from<to?1:-1;for(let i=0;i<400&&(step>0?d<to:d>to);i++){d.setDate(d.getDate()+step);const w=d.getDay();if(w&&w<6)n+=step}return n};
+/* Which letter day is today (or the next school day on a weekend)? Genesis's own label wins; otherwise alternate from the
+   nearest date Genesis labelled. shortcut: holidays inside that gap flip the estimate, so it is marked as an estimate. */
+function detectDay(){const known=new Map();(Array.isArray(S.schedule)?S.schedule:[]).forEach(k=>{const dk=dateKey(k.date);if(dk&&(k.d==='A'||k.d==='B'))known.set(dk,k.d)});
+const t=new Date();t.setHours(0,0,0,0);const w=t.getDay(),weekend=w===0||w===6;if(weekend)t.setDate(t.getDate()+(w===6?2:1));
+if(known.has(keyOf(t)))return{d:known.get(keyOf(t)),how:'genesis',weekend,date:t};
+let best=null;for(const[k,d]of known){const dt=new Date(k+'T00:00:00'),gap=Math.abs(dt-t);if(!best||gap<best.gap)best={dt,d,gap}}
+if(!best||best.gap>45*864e5)return{d:'',how:'',weekend,date:t};
+const n=schoolDaysBetween(best.dt,t);return{d:Math.abs(n)%2===0?best.d:(best.d==='A'?'B':'A'),how:'estimate',weekend,date:t}}
+const autoSelectTodayDay=()=>{const today=localTodayKey();if(S.dayAutoDate!==today){S.dayAutoDate=today;S.dayManual=0}const info=detectDay();S.detectedDay=info.d;S.dayInfo=info;if(info.d&&!S.dayManual)S.day=info.d};
+function dayBadge(){const i=S.dayInfo||{},d=i.d;if(!d)return`<div class="hero-day"><span class="hd-l">${S.day}</span><span class="hd-s">day</span><small>Genesis hasn’t said which day it is. Pick one below.</small></div>`;
+const when=i.weekend?i.date.toLocaleDateString('en-US',{weekday:'long'}):'Today';const note=S.day!==d?`Showing ${S.day} day. <button class="lk hd-back" data-act="day" data-v="${d}" data-auto="1">Back to ${d} day</button>`:i.how==='estimate'?'Estimated from your Genesis schedule':'From your Genesis schedule';
+return`<div class="hero-day"><span class="hd-w">${when} is</span><span class="hd-l">${d}</span><span class="hd-s">day</span><small>${note}</small></div>`}
 const dayList=d=>{const src=Array.isArray(S.schedule)&&S.schedule.length?S.schedule:S.courses;const todays=todayScheduleRows();const base=(todays.length&&d===S.detectedDay? todays:src).filter(k=>k.d==='AB'||k.d===d);return base.sort((a,b)=>(+a.p||99)-(+b.p||99)||String(a.n).localeCompare(String(b.n)))}
 const periodTimes=k=>(k.start&&k.end)?[k.start,k.end]:(PER[(Math.max(1,Math.min(PER.length,+k.p||1)))-1]||PER[0]);
 const periodMinutes=v=>{let m=String(v||'').match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?/i);if(!m)return 0;let h=+m[1],mi=+(m[2]||0);if(m[3]){if(h===12)h=0;if(m[3].toUpperCase()==='PM')h+=12;}return h*60+mi};
@@ -506,16 +513,15 @@ const goalSel=()=>`<label>I want to go into <select data-act="goal" aria-label="
 const schoolEntries=()=>Object.entries(SCH).sort(([a],[b])=>a==='sb'?-1:b==='sb'?1:a==='demo'?-1:b==='demo'?1:0);
 const schoolSel=()=>`<label>School <select data-act="school" aria-label="School">${schoolEntries().map(([k,v])=>`<option value="${k}" ${S.school===k?'selected':''}>${v.n}</option>`).join('')}</select></label>`;
 function heroHtml(){const t=nowS(),L=dayList(S.day),st=k=>periodMinutes(periodTimes(k)[0])*60,en=k=>periodMinutes(periodTimes(k)[1])*60,cur=L.find(k=>t>=st(k)&&t<en(k)),nx=L.find(k=>st(k)>t);let a,b='',bar='';
- if(cur){a='In class: '+esc(cur.n);b=`${Math.max(1,Math.ceil((en(cur)-t)/60))} min left · Room ${esc(cur.r)} · ${esc(cur.t)}`+(nx?` · Next: ${esc(nx.n)} at ${periodTimes(nx)[0]}`:'');bar=`<div class="bar" role="progressbar" aria-label="Class progress"><i style="width:${Math.max(0,Math.min(100,100*(t-st(cur))/(en(cur)-st(cur))))}%"></i></div>`}
- else if(nx){a='Next: '+esc(nx.n);b=`In ${Math.max(1,Math.ceil((st(nx)-t)/60))} min (${periodTimes(nx)[0]}) · Room ${esc(nx.r)} · ${esc(nx.t)}`}
+ if(cur){a='In class: '+esc(cur.n);b=`${Math.max(1,Math.ceil((en(cur)-t)/60))} min left ${cur.r?`· Room ${esc(cur.r)} `:''}· ${esc(cur.t)}`+(nx?` · Next: ${esc(nx.n)} at ${periodTimes(nx)[0]}`:'');bar=`<div class="bar" role="progressbar" aria-label="Class progress"><i style="width:${Math.max(0,Math.min(100,100*(t-st(cur))/(en(cur)-st(cur))))}%"></i></div>`}
+ else if(nx){a='Next: '+esc(nx.n);b=`In ${Math.max(1,Math.ceil((st(nx)-t)/60))} min (${periodTimes(nx)[0]}) ${nx.r?`· Room ${esc(nx.r)} `:''}· ${esc(nx.t)}`}
  else {const date=new Date(),weekday=date.getDay()>=1&&date.getDay()<=5,schoolHours=t>=7.5*3600&&t<14.5*3600;
  if(!S.clock&&weekday&&schoolHours){a='School day in progress';b='No class time matches the current time in your imported schedule (this may be lunch, a passing period, or a missing class time).'}
- else {const o=S.day==='A'?'B':'A',f=dayList(o)[0];a='School’s out';b=`Tomorrow is ${o} day`+(f?`, first up ${esc(f.n)} in room ${esc(f.r)}`:'')}}
- const rungs=L.slice(0,9).map(k=>{const s0=st(k),e0=en(k),state=k===cur?'now':e0&&e0<=t?'done':'next';return`<li class="${state}"${state==='now'?' aria-current="true"':''}><span class="dp-t">${esc(periodTimes(k)[0])}</span><span class="dp-n">${esc(k.n)}</span><span class="dp-r">${k.r?'Rm '+esc(k.r):''}</span></li>`}).join('');
- return`<div class="hero-now"><div class="lbl">${S.clock?'Demo clock':'Right now'} · ${S.day} day</div><div class="clk">${fmt(t).replace(/:/g,'<span class="cc">:</span>')}</div><div class="hero-a">${a}</div><div class="mu">${b}</div>${bar}</div>${rungs?`<ol class="daypath" aria-label="${S.day} day classes, first period at the bottom">${rungs}</ol>`:''}`}
+ else {const wd=new Date().getDay(),wkend=wd===0||wd===6,o=wkend?S.day:(S.day==='A'?'B':'A'),f=dayList(o)[0];a='School’s out';b=`${wkend||wd===5?'Monday':'Tomorrow'} is ${o} day`+(f?`, first up ${esc(f.n)}${f.r?` in room ${esc(f.r)}`:''}`:'')}}
+ return`<div class="hero-now"><div class="lbl">${S.clock?'Demo clock':'Right now'}</div><div class="clk">${fmt(t).replace(/:/g,'<span class="cc">:</span>')}</div><div class="hero-a">${a}</div><div class="mu">${b}</div>${bar}</div>${dayBadge()}`}
 const V={};
 V.sched=()=>{const hasLive=Array.isArray(S.schedule)&&S.schedule.length;/* Prefer Genesis's real schedule rows. If that endpoint failed, show imported course names as an explicit fallback instead of hiding every course whose A/B day is unknown. Never invent a period/time for fallback rows. */const fallbackRows=dayList(S.day).length?dayList(S.day):S.courses.filter(k=>k.d==='Unknown').slice().sort((a,b)=>String(a.n).localeCompare(String(b.n))).map(k=>({...k, fallbackOnly:true}));const rows=hasLive?dayList(S.day):fallbackRows;return `<h2>Schedule</h2><div class="hero" id="hero">${heroHtml()}</div>
-<div class="row sp"><button class="btn ${S.day==='A'?'on':''}" data-act="day" data-v="A">A day</button><button class="btn ${S.day==='B'?'on':''}" data-act="day" data-v="B">B day</button>
+<div class="row sp"><button class="btn ${S.day==='A'?'on':''}" data-act="day" data-v="A">View A day</button><button class="btn ${S.day==='B'?'on':''}" data-act="day" data-v="B">View B day</button>
 <label class="mu">Set demo time <input type="time" data-act="clock" value="${esc(S.clock)}" aria-label="Demo time"></label><button class="btn" data-act="clockoff">Use real time</button></div>
 <div class="card sp sc">${!hasLive&&rows.length?'<p class="mu">Genesis returned your classes and grades, but not the schedule details. Class names below are a fallback; periods and times are not guessed.</p>':''}<table><tr><th>Period</th><th>Time</th><th>Class</th><th>Teacher</th><th>Room</th></tr>${rows.map(k=>{const c=S.courses.find(x=>norm(x.n)===norm(k.n));const fallbackOnly=!!k.fallbackOnly;const times=(!fallbackOnly&&k.start&&k.end)?[k.start,k.end]:(fallbackOnly?['Not returned']:periodTimes(k));return `<tr><td>${esc(fallbackOnly?'Not returned':(k.periodLabel||'P'+k.p))}</td><td>${times.map(esc).join('–')}</td><td><b>${esc(k.n)}</b>${c?` <span class="chip">${esc(c.l)}</span>`:''}</td><td>${esc(k.t||'')}</td><td>${esc(k.r||'')}</td></tr>`}).join('')||'<tr><td colspan="5" class="mu">Genesis has not returned schedule details for this day yet. Use Sync now to retry.</td></tr>'}</table></div>`};
 function assignmentAverage(k,skipCi=-1,skipJi=-1){let total=0,weight=0;(k.cats||[]).forEach((c,ci)=>{const items=(c.items||[]).filter((it,ji)=>!it.h&&!(ci===skipCi&&ji===skipJi));const possible=items.reduce((a,it)=>a+(Number(it.m)||0),0);if(possible>0){total+=(Number(c.w)||0)*100*items.reduce((a,it)=>a+(Number(it.s)||0),0)/possible;weight+=Number(c.w)||0}});return weight?total/weight:null}
@@ -594,7 +600,7 @@ $('#cr').textContent=g1-g0<1e-9?'Add some assignments first.':(x=>x>m?`Even a pe
 function updG(){const k=S.courses[S.open];if(!k||!$('#cg'))return;$('#cg').textContent=gtxt(gradeOf(k,1));$('#ca').textContent=gtxt(gradeOf(k,0));$('#ws').textContent='Total '+k.cats.reduce((a,c)=>a+ +c.w,0)+'%';calc()}
 function act(el){const a=el.dataset.act,d=el.dataset,v=el.tagName==='BUTTON'?d.v:el.value;
 switch(a){
-case'tab':if(v){TAB=v;}break;case'mp':if(S.markingPeriods&&S.markingPeriods[v]){S.markingPeriods[S.markingPeriod]=structuredClone(S.courses);S.markingPeriod=v;S.courses=structuredClone(S.markingPeriods[v]);S.open=null;}break;case'day':S.day=v;S.dayManual=1;break;case'clock':S.clock=v;S.clockAt=Date.now();break;case'clockoff':S.clock='';break;
+case'tab':if(v){TAB=v;}break;case'mp':if(S.markingPeriods&&S.markingPeriods[v]){S.markingPeriods[S.markingPeriod]=structuredClone(S.courses);S.markingPeriod=v;S.courses=structuredClone(S.markingPeriods[v]);S.open=null;}break;case'day':S.day=v;S.dayManual=d.auto?0:1;break;case'clock':S.clock=v;S.clockAt=Date.now();break;case'clockoff':S.clock='';break;
 case'goal':S.goal=v;break;case'grade':S.grade=+v;break;case'school':S.school=v;break;case'st':S.st=v;break;
 case'cw':S.cw=el.checked?1:0;break;case'show':S.show[d.k]=el.checked?1:0;break;
 case'tgt':{const i=S.targets.indexOf(v);i<0?S.targets.push(v):S.targets.splice(i,1);break}
