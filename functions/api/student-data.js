@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { Genesis } from '../../lib/genesis.js';
+import { credentials } from '../../lib/session.js';
 
 const headers = { 'Cache-Control': 'no-store' };
 const json = (data, status = 200) => Response.json(data, { status, headers });
@@ -30,7 +31,8 @@ export async function onRequestPost({ request, env }) {
   if (!env.DB) return json({ error: 'Pathwise database is not connected yet. Wait for the latest deployment.' }, 503);
   try {
     const body = await request.json();
-    const accountKey = await identity(body.user, body.pass);
+    const { user, pass } = await credentials(env, body);
+    const accountKey = await identity(user, pass);
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS student_data (account_key TEXT PRIMARY KEY, data_json TEXT NOT NULL, updated_at TEXT NOT NULL)').run();
     if (body.action === 'load') {
       const row = await env.DB.prepare('SELECT data_json, updated_at FROM student_data WHERE account_key = ?').bind(accountKey).first();

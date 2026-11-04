@@ -2,6 +2,9 @@
 (() => {
   'use strict';
   let credentials = null;
+  // A sealed session from /api/login keeps you signed in across reloads; the password itself is never stored.
+  const SESSION_KEY = 'pathwise:session';
+  const dropSession = () => { credentials = null; try { localStorage.removeItem(SESSION_KEY); } catch (_) {} };
   let lastFingerprint = '';
   const j = async (p, o) => {
     const r = await fetch(p, o);
@@ -164,11 +167,11 @@
   window.pathwiseSyncUI = syncUI;
   document.addEventListener('click', async e => {
     const b = e.target.closest('#pw-sync'); if (!b || syncBusy) return;
-    if (!credentials) { S.auth = 0; save(); render(); document.getElementById('gu')?.focus(); return; }
+    if (!credentials) { dropSession(); S.auth = 0; save(); render(); document.getElementById('gu')?.focus(); return; }
     syncBusy = true; b.disabled = true; b.classList.add('busy'); b.querySelector('.sync-t').textContent = 'Syncing…';
     try { await syncFromGenesis({ manual: true }); }
     catch (err) {
-      if (err.status === 401) { credentials = null; toast('Genesis sign-in expired or was rejected. Sign in again to sync.'); }
+      if (err.status === 401) { dropSession(); toast('Genesis sign-in expired or was rejected. Sign in again to sync.'); }
       else toast('Sync failed: ' + err.message);
     }
     syncBusy = false; b.disabled = false; b.classList.remove('busy'); syncUI();
@@ -183,7 +186,9 @@
       if (status) status.textContent = 'Connecting to Genesis…';
       const d = await post('/api/login', { user, pass });
       if (status) status.textContent = 'Loading your saved Pathwise notes and homework…';
-      credentials = { user, pass }; localStorage.setItem('pathwise:lastSync', String(Date.now())); cloudReady = false; lastFingerprint = gradeFingerprint(d); p.value = '';
+      credentials = d.session ? { session: d.session } : { user, pass }; delete d.session;
+      if (credentials.session) localStorage.setItem(SESSION_KEY, credentials.session); else localStorage.removeItem(SESSION_KEY);
+      localStorage.setItem('pathwise:lastSync', String(Date.now())); cloudReady = false; lastFingerprint = gradeFingerprint(d); p.value = '';
       let savedPersonal = null, personalLoaded = false;
       try { savedPersonal = await loadPersonalData(); personalLoaded = true; }
       catch (cloudError) { console.warn('[Pathwise] Personal-data load failed:', cloudError.message); }
@@ -231,13 +236,22 @@
     if (!credentials || !S.auth) return;
     try { await syncFromGenesis(); }
     catch (e) {
-      if (e.status === 401) { credentials = null; lastFingerprint = ''; syncUI(); toast('Automatic sync paused. Sign in to Genesis again.'); }
+      if (e.status === 401) { dropSession(); lastFingerprint = ''; syncUI(); toast('Automatic sync paused. Sign in to Genesis again.'); }
       else console.warn('[Pathwise] Automatic sync failed:', e.message);
     }
   }, 10 * 60 * 1000);
   document.addEventListener('click', e => {
     if (!e.target.closest('button[data-act="logout"]')) return;
-    credentials = null; lastFingerprint = ''; cloudReady = false; clearTimeout(cloudTimer);
+    dropSession(); lastFingerprint = ''; cloudReady = false; clearTimeout(cloudTimer);
   }, true);
+  // After a reload: pick the saved session back up, restore cloud notes, then refresh grades in the background.
+  (async () => {
+    const saved = localStorage.getItem(SESSION_KEY);
+    if (!saved || typeof S === 'undefined' || !S.auth || S.demo) return;
+    credentials = { session: saved }; syncUI();
+    try { const data = await loadPersonalData(); if (data) applyPersonalData(data); cloudReady = true; save(); render(); }
+    catch (e) { if (e.status === 401) { dropSession(); syncUI(); toast('Your saved sign-in expired. Sign in to Genesis again to sync.'); return; } }
+    try { await syncFromGenesis(); } catch (e) { if (e.status === 401) { dropSession(); syncUI(); } }
+  })();
   syncUI();
 })();

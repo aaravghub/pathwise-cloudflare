@@ -1,10 +1,11 @@
 import { createHash } from 'node:crypto';
 import { Genesis, pull } from '../../lib/genesis.js';
+import { credentials } from '../../lib/session.js';
 
-export async function onRequestPost({ request }) {
+export async function onRequestPost({ request, env }) {
   try {
     const body = await request.json().catch(() => ({}));
-    const { user, pass } = body || {};
+    const { user, pass } = await credentials(env, body);
     if (typeof user !== 'string' || typeof pass !== 'string' || !user.trim() || !pass) return Response.json({ error: 'Session is not available. Sign in again.' }, { status: 401, headers: { 'Cache-Control': 'no-store' } });
     const g = new Genesis();
     g.accountKey = createHash('sha256').update(user.trim().toLowerCase()).digest('hex').slice(0, 24);

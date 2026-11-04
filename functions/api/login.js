@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto';
 import { Genesis, pull } from '../../lib/genesis.js';
+import { seal } from '../../lib/session.js';
 
-export async function onRequestPost({ request }) {
+export async function onRequestPost({ request, env }) {
   try {
     const body = await request.json().catch(() => ({}));
     const { user, pass } = body || {};
@@ -9,7 +10,9 @@ export async function onRequestPost({ request }) {
     const g = new Genesis();
     g.accountKey = createHash('sha256').update(user.trim().toLowerCase()).digest('hex').slice(0, 24);
     await g.login(user.trim(), pass);
-    return Response.json(await pull(g), { headers: { 'Cache-Control': 'no-store' } });
+    const data = await pull(g);
+    data.session = await seal(env, user.trim(), pass);
+    return Response.json(data, { headers: { 'Cache-Control': 'no-store' } });
   } catch (e) {
     const message = String(e?.message || 'Could not sign in to Genesis');
     const status = /rejected the login|could not find a student id|SSO|MFA/i.test(message) ? 401 : 502;
