@@ -20,23 +20,26 @@ export async function mountLadder(el, { dark = false, labels = ['9th grade', '10
   el.classList.add('has-scene');
 
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Every tint comes from the page's accent (--acc), mixed with neutral bases like the CSS does.
+  const acc = new THREE.Color().setStyle(getComputedStyle(document.documentElement).getPropertyValue('--acc').trim() || '#58d6a4');
+  const mix = (base, t) => new THREE.Color(base).lerp(acc, t);
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(dark ? 0x0b1713 : 0xe6f0ec, 10, 22);
+  scene.fog = new THREE.Fog(dark ? mix('#080b0a', 0.07) : mix('#f2f4f3', 0.11), 10, 22);
   const cam = new THREE.PerspectiveCamera(34, 1, 0.1, 60);
 
-  scene.add(new THREE.HemisphereLight(0xffffff, dark ? 0x12382b : 0xb9e5d2, dark ? 1.2 : 1.7));
+  scene.add(new THREE.HemisphereLight(0xffffff, dark ? mix('#0a0f0d', 0.3) : mix('#ffffff', 0.4), dark ? 1.2 : 1.7));
   const sun = new THREE.DirectionalLight(0xffffff, dark ? 1.8 : 2.4); sun.position.set(4, 8, 6); scene.add(sun);
-  const rim = new THREE.DirectionalLight(0x58d6a4, dark ? 2.2 : 1.3); rim.position.set(-5, 3, -4); scene.add(rim);
+  const rim = new THREE.DirectionalLight(acc, dark ? 2.2 : 1.3); rim.position.set(-5, 3, -4); scene.add(rim);
 
   const mat = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.55, metalness: 0, ...o });
   const M = {
-    rail: mat(dark ? 0xd9ebe3 : 0xffffff, { roughness: 0.3 }),
-    rung: mat(0x1f7a5a, { roughness: 0.4 }),
-    hoodie: mat(0x58d6a4, { roughness: 0.7 }),
-    pants: mat(0x163a2e, { roughness: 0.8 }),
+    rail: mat(dark ? mix('#e4e9e7', 0.08) : 0xffffff, { roughness: 0.3 }),
+    rung: mat(mix('#000000', 0.55), { roughness: 0.4 }),
+    hoodie: mat(acc, { roughness: 0.7 }),
+    pants: mat(mix('#0a0f0d', 0.3), { roughness: 0.8 }),
     skin: mat(0xc99273, { roughness: 0.6 }),
-    pack: mat(0xf2f7f5, { roughness: 0.45 }),
-    cap: mat(0x10241c, { roughness: 0.5 }),
+    pack: mat(mix('#f4f6f5', 0.05), { roughness: 0.45 }),
+    cap: mat(mix('#0b0f0e', 0.15), { roughness: 0.5 }),
     shoe: mat(0xffffff, { roughness: 0.5 }),
   };
 
@@ -52,12 +55,12 @@ export async function mountLadder(el, { dark = false, labels = ['9th grade', '10
   const drawPlaque = (p, text) => {
     const c = p.userData.canvas, g = c.getContext('2d');
     g.clearRect(0, 0, c.width, c.height);
-    g.fillStyle = dark ? 'rgba(22,40,33,.72)' : 'rgba(255,255,255,.78)';
+    g.fillStyle = dark ? 'rgba(22,26,24,.72)' : 'rgba(255,255,255,.78)';
     g.strokeStyle = dark ? 'rgba(255,255,255,.22)' : 'rgba(255,255,255,1)';
     g.lineWidth = 4;
     g.beginPath(); g.roundRect(4, 4, c.width - 8, c.height - 8, 28); g.fill(); g.stroke();
-    g.fillStyle = '#58d6a4'; g.beginPath(); g.arc(52, c.height / 2, 13, 0, 7); g.fill();
-    g.fillStyle = dark ? '#eaf4ef' : '#0f2a20';
+    g.fillStyle = '#' + acc.getHexString(THREE.SRGBColorSpace); g.beginPath(); g.arc(52, c.height / 2, 13, 0, 7); g.fill();
+    g.fillStyle = dark ? '#eef2f0' : '#0c1110';
     g.font = '600 50px "Schibsted Grotesk", system-ui, sans-serif'; g.textBaseline = 'middle';
     g.fillText(text, 86, c.height / 2 + 2);
     p.material.map.needsUpdate = true;
@@ -77,10 +80,10 @@ export async function mountLadder(el, { dark = false, labels = ['9th grade', '10
   const relabel = () => plaques.forEach(p => drawPlaque(p, labels[(((p.userData.i + cycle) % labels.length) + labels.length) % labels.length]));
   document.fonts?.ready.then(() => relabel());
 
-  // Goal: the mint dot from the Pathwise logo, waiting above the ladder.
-  const goal = new THREE.Mesh(new THREE.SphereGeometry(0.2, 32, 16), new THREE.MeshBasicMaterial({ color: 0x58d6a4, fog: false }));
+  // Goal: the accent dot from the Pathwise logo, waiting above the ladder.
+  const goal = new THREE.Mesh(new THREE.SphereGeometry(0.2, 32, 16), new THREE.MeshBasicMaterial({ color: acc, fog: false }));
   goal.position.set(0.2, 3.3, -2.5); scene.add(goal);
-  const halo = new THREE.Mesh(new THREE.RingGeometry(0.28, 0.31, 48), new THREE.MeshBasicMaterial({ color: 0x58d6a4, transparent: true, opacity: 0.45, fog: false }));
+  const halo = new THREE.Mesh(new THREE.RingGeometry(0.28, 0.31, 48), new THREE.MeshBasicMaterial({ color: acc, transparent: true, opacity: 0.45, fog: false }));
   halo.position.copy(goal.position); scene.add(halo);
 
   // Student, built facing +z, then turned to face the ladder. Limbs hang from pivot groups.
